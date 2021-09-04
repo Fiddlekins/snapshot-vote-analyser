@@ -1,0 +1,17 @@
+{
+  "name": "snapshot-vote-analyser",
+  "version": "1.0.0",
+  "description": "Just some scripts to crunch numbers on snapshot vote data",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Fiddlekins/snapshot-vote-analyser.git"
+  },
+  "author": "",
+  "license": "ISC"
+}
