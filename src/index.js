@@ -1,9 +1,10 @@
 import path from 'path';
 import {fileURLToPath} from 'url';
-import formatResult from './formatResult.js';
+import formatResults from './formatResults.js';
 import parseSnapshotData from './parseSnapshotData.js';
 import strategies from './strategies/index.js';
 import aggregateTable from './utils/aggregateTable.js';
+import formatTableMd from './utils/formatTableMd.js';
 import fs from './utils/fs.js';
 import parseCsv from './utils/parseCsv.js';
 
@@ -28,16 +29,44 @@ async function main() {
 		const rawValues = parseCsv(file.content);
 		const table = aggregateTable(rawValues);
 		const parsedTable = parseSnapshotData(table);
-		const formattedLinearResult = formatResult(strategies.linear(parsedTable));
-		const formattedQuadraticResult = formatResult(strategies.quadratic(parsedTable));
+		const linearResults = strategies.linear(parsedTable);
+		const quadraticResults = strategies.quadratic(parsedTable);
+
+		const combinedResults = [['Choice', 'Voters', 'Linear Rank', 'Linear Votes', 'Linear Percent (%)', 'Quadratic Rank', 'Quadratic Votes', 'Quadratic Percent (%)']];
+		const linearChoiceToIndexMap = {};
+		Object.values(linearResults).forEach((result, index) => {
+			linearChoiceToIndexMap[result.choice] = index;
+		});
+		const quadraticChoiceToIndexMap = {};
+		Object.values(quadraticResults).forEach((result, index) => {
+			quadraticChoiceToIndexMap[result.choice] = index;
+		});
+		Object.keys(linearChoiceToIndexMap).forEach((choice) => {
+			const linearResult = linearResults[linearChoiceToIndexMap[choice]];
+			const quadraticResult = quadraticResults[quadraticChoiceToIndexMap[choice]];
+			combinedResults.push([
+				`Choice ${choice}`,
+				linearResult.voterCount,
+				linearResult.rank,
+				linearResult.voteCount.toFixed(1),
+				linearResult.percent.toFixed(1),
+				quadraticResult.rank,
+				quadraticResult.voteCount.toFixed(1),
+				quadraticResult.percent.toFixed(1)
+			]);
+		});
+
 		const output = [
 			'# Results with different strategies',
 			'',
 			'## Linear',
-			formattedLinearResult,
+			formatResults(linearResults),
 			'',
 			'## Quadratic',
-			formattedQuadraticResult,
+			formatResults(quadraticResults),
+			'',
+			'## Combined',
+			formatTableMd(combinedResults),
 			''
 		].join('\n');
 		await fs.writeFile(path.join(outputPath, `${file.name}.md`), output, 'utf8');

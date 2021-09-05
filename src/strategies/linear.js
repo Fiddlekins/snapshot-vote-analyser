@@ -1,14 +1,18 @@
-import sortResult from './sortResult.js';
+import sortResults from './sortResults.js';
 
 export default function tally(data) {
 	const totalVotes = {};
 	data.forEach(({voteWeights, balance}) => {
 		Object.keys(voteWeights).forEach((choice => {
 			if (!totalVotes[choice]) {
-				totalVotes[choice] = 0;
+				totalVotes[choice] = {
+					voteCount: 0,
+					voterCount: 0
+				};
 			}
-			totalVotes[choice] += voteWeights[choice] * balance;
+			totalVotes[choice].voteCount += voteWeights[choice] * balance;
+			totalVotes[choice].voterCount += 1;
 		}));
 	});
-	return sortResult(totalVotes);
+	return sortResults(totalVotes);
 }
